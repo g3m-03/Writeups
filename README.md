@@ -8,7 +8,6 @@
       ⚙️ Technical analysis
       🧪 Steps to reproduce
       💥 Impact
-      🛠️ Fix / recommendations
       🏁 Final conclusion
 
   My goal is to share clear and practical explanations that help others learn from real case studies.
