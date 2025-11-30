@@ -1,0 +1,82 @@
+🗑️ IDOR in Blog Deletion
+
+📌 Introduction
+
+    - While testing a program on Bugcrowd, I noticed that it had just transitioned from private to public.
+    - I decided to target it immediately — fresh public programs often still have leftovers from initial development.
+    - One of my favorite vulnerabilities to test early is IDOR (Insecure Direct Object Reference):
+        - Easy to test.
+        - Often high-impact.
+
+🧪 Testing Setup
+
+    - Created two separate user accounts to test authorization logic.
+    - Observed that the platform used simple incremental numeric IDs for:
+          - Account IDs.
+          - Blog post IDs.
+    - Proceeded to test every major function for IDOR vulnerabilities.
+
+
+🔍 Initial Attempts
+
+    - Tested profile access → ❌ no IDOR.
+    - Tested account updates → ❌ no IDOR.
+    - Tested comment creation/deletion → ❌ no IDOR.
+    - Tested other user-related features → ❌ no IDOR.
+    - No luck… until I reached the Blog functionality.
+
+📝 Blog Feature Analysis
+
+    Each user could:
+    - Create a blog post
+    - Delete their own blog post
+    - I created blog posts on both accounts.
+
+🚫 First Day: Failed Attempt
+
+    - I attempted to delete Account B’s blog post using Account A.
+    - Result: 403 Forbidden
+    - Not exploitable — yet.
+    - But I read something interesting:Newly created blog posts remain private for 24 hours. After 24 hours, they become public by default.
+
+      That gave me an idea.
+
+
+ ⏳ Next Day Testing
+
+    - Waited 24 hours for both blog posts to auto-publish.
+    - Repeated the delete attempt:
+    - Account A attempts to delete Account B’s blog post.
+    
+This time…
+
+🎯 It worked.
+
+    - The server allowed the deletion.
+    - No ownership check after blogs became public.
+    - Classic IDOR due to missing authorization after state change.
+
+
+📨 Reporting
+
+    -Immediately submitted the report on Bugcrowd.
+    - Went to sleep happy thinking this might be a valid high/medium-impact issue.
+    
+Next morning…
+
+❌ It was marked as Duplicate.
+Someone had already found and reported it in January 2025.I reported it in March 2025.This became my first-ever duplicate in my bug bounty journey.
+
+
+🥲 Final Thoughts
+
+  - Even though it was a duplicate, I still consider this a win:
+  - My methodology was solid.
+  - I understood state-based authorization bugs.
+  - The vulnerability was real and high-impact.
+  - And it reinforced an important lesson:
+  - Always test features again after state changes. Behavior can differ once objects become public, archived, expired, or moved.
+
+
+
+
