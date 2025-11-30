@@ -1,0 +1,54 @@
+📄 Stored XSS via Malicious HTML File Upload on careers.example.com
+
+Introduction: During my early bug bounty journey, I focused mainly on two vulnerability classes: File Upload vulnerabilities and Cross-Site Scripting (XSS).
+While exploring a program on HackerOne, I came across a stored XSS vulnerability on careers.example.com that ultimately earned me a $300 reward from the vendor operating the underlying third-party platform.
+
+🔍 Target
+  Domain: careers.example.com
+  Feature: Resume upload functionality.
+  Technology: PHP backend (Identified via Wappalyzer).
+
+
+📝 Initial Testing
+  I started with basic file upload testing:
+  -Uploading a .php file → rejected.
+  -Uploading a .html file → rejected.
+  -Uploading a valid .pdf → accepted.
+  -This suggested that the application enforced client-side or superficial server-side validation based on MIME type.
+
+⚙️ Burp Suite Testing
+  I captured the valid PDF upload request and sent it to Burp Repeater for manual tampering.
+  Step 1 — Keep Valid Content-Type = Content-Type: application/pdf
+  Step 2 — Modify Filename = I changed:filename="resume.pdf" to filename="xss.html"
+  Step 3 — Inject Malicious HTML File Content
+  I replaced the PDF content with a simple HTML XSS payload: <script>alert('XSS');</script>
+  Step 4 — Send the Altered Request
+  Surprisingly, the server:
+  ✔️ Accepted the upload
+  ✔️ Returned the file-access URL in the response
+  
+  This indicated the upload validation relied solely on the Content-Type header, not the file extension or content.
+
+💥 Impact — Stored XSS Execution
+When I visited the returned URL: https://careers.example.com/uploads/xss.html
+The XSS payload executed immediately, confirming stored/hosted XSS.
+
+Additional Tests
+  - Uploaded .php → Accepted, but downloaded (not executed).
+  - Uploaded other extensions → Mostly downloaded.
+  - Only .html executed directly in the browser.
+
+
+📨 Report & Response
+   I initially submitted the issue to the HackerOne program.However, I received the response:
+   “careers.example.com is a third-party platform developed by thirdparty.com. Please report it to https://thirdparty.com/security-report.”
+   Even though the domain was listed in-scope, the program clarified it was fully owned by a third-party vendor.
+
+So I reported the issue to:
+
+  📧 security@thirdparty.com
+   Within one day, the vendor:
+  Triaged the report , Reproduced the issue , Deployed a fix and Awarded me $300.
+
+
+A simple trick — changing the filename and payload while keeping the content type intact — turned into a high-impact stored XSS and my first real bug bounty payout.
